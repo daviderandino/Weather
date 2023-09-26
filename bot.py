@@ -10,18 +10,18 @@ def kelvin_to_celsius(temp):
     return round(temp-273.15,2)
 
 BASE_URL = "http://api.openweathermap.org/data/2.5/weather?"
-# API_KEY = ... (hidden)
+# API_KEY = "..."     hidden
 
 CITY = "Torino"
 
-# token = ... (hidden)
+# token = "..."       hidden
 
 TOKEN: Final = token
 BOT_USERNAME : Final = '@WeatherrApp_bot'
 
 # Commands
 async def start_command(update: Update,context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Benvenuto/a!\nSeleziona la città con /city NOMECITTÀ\ne digita poi /meteo per le informazioni atmosferiche")
+    await update.message.reply_text("Benvenuto/a!\nSeleziona la città con /city NOMECITTÀ\ne digita poi /meteo per le condizioni atmosferiche")
     
 async def help_command(update: Update,context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Seleziona la città con /city NOMECITTÀ\ne digita poi /meteo per le informazioni atmosferiche")
@@ -31,12 +31,15 @@ async def city_command(update: Update,context: ContextTypes.DEFAULT_TYPE):
     global url
     global response
     user_input = update.message.text.split('/city', 1)[-1].strip()
-    # Assicurarsi che l'input non sia vuoto prima di modificarlo
+    # Assicurati che l'input non sia vuoto prima di modificarlo
     if user_input:
         CITY = user_input  # Imposta la variabile CITY con l'input dell'utente
-        await update.message.reply_text(f"Città impostata su {CITY}")
         url = BASE_URL + "appid=" + API_KEY + "&q=" + CITY
         response = requests.get(url).json()
+        if response['cod'] == '404':
+            await update.message.reply_text("Città non valida!")
+        else:
+            await update.message.reply_text(f"Città impostata su {CITY}")
     else:
         await update.message.reply_text("Per favore, specifica una città dopo il comando /city, ad esempio ''/city Torino''")
 
@@ -50,12 +53,16 @@ async def meteo_command(update: Update,context: ContextTypes.DEFAULT_TYPE):
     sunset_time = dt.datetime.utcfromtimestamp(response['sys']['sunset'] + response['timezone'])
 
     await update.message.reply_text("Ecco le condizioni atmosferiche a " + CITY + ":")
-    await update.message.reply_text(str(temp_celsius) + "°C")
-    await update.message.reply_text(str(humidity) + "%" + " di umidità")
-    await update.message.reply_text("Descrizione: " + description)
-    await update.message.reply_text("Velocità del vento: " + str(wind_speed) + " m/s")
-    await update.message.reply_text("Alba: ore " + str(sunrise_time)[11:])
-    await update.message.reply_text("Tramonto: ore " + str(sunset_time)[11:])
+    stringa = "Temperatura: " + str(temp_celsius) + "°C\n" + \
+          "Umidità: " + str(humidity) + "%\n" + \
+          "Velocità del vento: " + str(wind_speed) + " m/s\n" + \
+          "Descrizione: " + description + "\n" + \
+          "Orario alba: " + str(sunrise_time)[11:] + "\n" + \
+          "Orario tramonto: " + str(sunset_time)[11:]
+    await update.message.reply_text(stringa)
+
+def modificacity(city):
+    CITY = city
 
 # Responses
 
