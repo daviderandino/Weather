@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Web App Meteo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="static/style.css">
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+    const cityInput = document.getElementById('cityInput');
+    const confirmButton = document.getElementById('confirmButton');
+    const weatherInfo = document.getElementById('weatherInfo');
+    const textContainer = document.querySelector('.text-container');
+    const displayText = document.getElementById('displayText');
+
+    // Aggiungi un gestore di eventi all'input di testo per l'evento "keydown"
+    cityInput.addEventListener('keydown', function(event) {
+        if (event.keyCode === 13) { // Il codice 13 corrisponde al tasto "Invio"
+            event.preventDefault(); // Impedisce l'invio del modulo (comportamento predefinito)
+
+            // Simula il clic sul pulsante "Conferma"
+            confirmButton.click();
+        }
+    });
+
+    confirmButton.addEventListener('click', function() {
+        const city = cityInput.value.trim();
+        if (city === '') {
+            alert('Inserisci il nome della città.');
+            return;
+        }
+
+        // Effettua una chiamata AJAX per ottenere la stringa da Python
+        fetch('/get_string')
+        .then(response => response.json())
+        .then(data => {
+            // Utilizza la stringa ottenuta dalla funzione Python
+            const pythonString = data.value;
+            
+            // Aggiorna il contenuto della sezione delle informazioni meteo
+            weatherInfo.textContent = `Richiesti dati meteo per ${city}, clicca nuovamente per confermare`; // Aggiungi qui i dati meteo reali
+            
+            // Mostra il contenitore del testo e aggiungi la stringa ottenuta da Python
+            textContainer.style.display = 'block';
+            displayText.textContent = pythonString;
+
+            var lines = pythonString.split('\n');
+
+            var testoConAndataACapo = '';
+            for (var i = 0; i < lines.length; i++) {
+                testoConAndataACapo += lines[i] + '<br>';
+            }
+
+            displayText.innerHTML = testoConAndataACapo;
+        })
+        fetch('/store_input', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ city: city })
+        })
+        .catch(error => {
+            console.error('Errore nella chiamata AJAX:', error);
+        });
+
+        // Esegui la chiamata API per ottenere i dati meteorologici della città (come prima)
+
+        // Simulazione di dati di esempio (come prima)
+
+        // Aggiorna il contenuto della sezione delle informazioni meteo (come prima)
+
+        // Mostra il contenitore del testo e aggiungi il testo desiderato
+        textContainer.style.display = 'block';
+        displayText.textContent = 'Testo da mostrare a destra';
+    });
+});
+
+    </script>
+    
+</head>
+<body>
+    <div class="container">
+        <img src="/static/openweather-logo.png" alt="OpenWeather Logo" class="logo">
+        <h1>Web App Meteo</h1>
+        <div class="input-container">
+            <input type="text" id="cityInput" placeholder="Inserisci la città" spellcheck="false">
+        </div>
+        <button id="confirmButton">Conferma</button>
+        <div id="weatherInfo"></div>
+    </div>
+
+    <div class="text-container">
+        <p id="displayText">Testo da mostrare a destra</p>
+    </div>  
+    
+</body>
+</html>
